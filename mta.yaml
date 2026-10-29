@@ -1,0 +1,154 @@
+_schema-version: 3.3.0
+ID: purchase-requests
+version: 1.0.0
+description: "LeverX BTP course: Purchase Requests CAP application"
+parameters:
+  enable-parallel-deployments: true
+  deploy_mode: html5-repo
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: purchase-requests-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: purchase-requests-auth
+      - name: purchase-requests-db
+      - name: purchase-requests-destination
+
+  - name: purchase-requests-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: purchase-requests-db
+
+  - name: purchase-requests-app-deployer
+    type: com.sap.application.content
+    path: gen
+    build-parameters:
+      build-result: app/
+      requires:
+        - name: purchaserequestspurchaserequests
+          artifacts:
+            - purchaserequests.zip
+          target-path: app/
+    requires:
+      - name: purchase-requests-auth
+      - name: srv-api
+      - name: purchase-requests-html5-repo-host
+        parameters:
+          content-target: true
+          config:
+            HTML5Runtime_enabled: true
+    parameters:
+      config:
+        destinations:
+          - Name: srv-api
+            URL: ~{srv-api/srv-url}
+            Authentication: NoAuthentication
+            Type: HTTP
+            ProxyType: Internet
+            ForwardAuthToken: true
+            DynamicDestination: true
+
+  - name: purchaserequestspurchaserequests
+    type: html5
+    path: app/purchaserequests
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm run build
+      supported-platforms:
+        []
+
+  - name: purchase-requests-destinations
+    type: com.sap.application.content
+    requires:
+      - name: purchase-requests-auth
+        parameters:
+          service-key:
+            name: purchase-requests-auth-key
+      - name: purchase-requests-html5-repo-host
+        parameters:
+          service-key:
+            name: purchase-requests-html5-repo-host-key
+      - name: srv-api
+      - name: purchase-requests-destination
+        parameters:
+          content-target: true
+    build-parameters:
+      no-source: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: purchase-requests-html5-repository
+              ServiceInstanceName: purchase-requests-html5-repo-host
+              ServiceKeyName: purchase-requests-html5-repo-host-key
+              sap.cloud.service: purchaserequests.service
+            - Name: purchase-requests-auth
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: purchase-requests-auth
+              ServiceKeyName: purchase-requests-auth-key
+              sap.cloud.service: purchaserequests.service
+
+resources:
+  - name: purchase-requests-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: purchase-requests-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+        role-collections:
+          - name: 'requester (purchase-requests ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.requester'
+          - name: 'approver (purchase-requests ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.approver'
+  - name: purchase-requests-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: purchase-requests-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+    requires:
+      - name: srv-api
+
+  - name: purchase-requests-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host

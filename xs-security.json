@@ -1,0 +1,43 @@
+{
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.requester",
+      "description": "requester"
+    },
+    {
+      "name": "$XSAPPNAME.approver",
+      "description": "approver"
+    },
+    {
+      "name": "$XSAPPNAME.finance",
+      "description": "finance"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "requester",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.requester"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "approver",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.approver"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "finance",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.finance"
+      ],
+      "attribute-references": []
+    }
+  ]
+}

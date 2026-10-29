@@ -1,0 +1,68 @@
+{
+  "name": "purchase-requests",
+  "version": "1.0.0",
+  "description": "LeverX BTP course: Purchase Requests CAP application",
+  "type": "module",
+  "dependencies": {
+    "@cap-js/hana": "^3",
+    "@sap/cds": "^10",
+    "@sap/xssec": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/cds-test": "^1",
+    "@cap-js/sqlite": "^3",
+    "@sap/cds-dk": "^10",
+    "cds-plugin-ui5": "^0.17.0",
+    "mocha": "^11"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "test": "mocha test/*.test.js --timeout 30000 --exit",
+    "watch-purchaserequests": "cds watch --open leverx.purchaserequests/index.html?sap-ui-xx-viewCache=false --livereload false"
+  },
+  "cds": {
+    "requires": {
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "alice": {
+              "roles": [
+                "requester"
+              ]
+            },
+            "bob": {
+              "roles": [
+                "approver"
+              ]
+            },
+            "carol": {
+              "roles": [
+                "approver",
+                "finance"
+              ]
+            },
+            "dave": {
+              "roles": []
+            }
+          }
+        }
+      },
+      "[production]": {
+        "db": "hana",
+        "auth": "xsuaa"
+      },
+      "destinations": true,
+      "html5-repo": true,
+      "workzone": true
+    }
+  },
+  "private": true,
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/purchaserequests"
+  ]
+}
