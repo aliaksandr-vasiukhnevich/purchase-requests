@@ -108,14 +108,6 @@ modules:
               ServiceInstanceName: purchase-requests-auth
               ServiceKeyName: purchase-requests-auth-key
               sap.cloud.service: purchaserequests.service
-            - Name: srv-api
-              URL: ~{srv-api/srv-url}
-              Authentication: NoAuthentication
-              Type: HTTP
-              ProxyType: Internet
-              HTML5.ForwardAuthToken: true
-              HTML5.DynamicDestination: true
-              sap.cloud.service: purchaserequests.service
 
 resources:
   - name: purchase-requests-auth
@@ -152,6 +144,17 @@ resources:
       service-plan: lite
       config:
         HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: srv-api
+                URL: ~{srv-api/srv-url}
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
     requires:
       - name: srv-api
 
