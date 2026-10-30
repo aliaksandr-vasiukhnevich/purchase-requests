@@ -132,6 +132,10 @@ resources:
             description: 'generated'
             role-template-references:
               - '$XSAPPNAME.approver'
+          - name: 'finance (purchase-requests ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.finance'
   - name: purchase-requests-db
     type: com.sap.xs.hdi-container
     parameters:
